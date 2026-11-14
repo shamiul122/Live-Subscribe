@@ -57,3 +57,169 @@ export type OrganizationPermissions = {
     transfer_ownership: boolean;
     leave: boolean;
 };
+
+export type PlanSummary = {
+    id: number;
+    slug: string;
+    name: string;
+    description: string | null;
+    price: { minor: number; currency: string; formatted: string };
+    interval: { value: string; label: string; count: number; label_full: string };
+    interval_label: string;
+    has_trial: boolean;
+    trial_days: number;
+    is_active: boolean;
+    is_archived: boolean;
+    is_purchasable: boolean;
+    features: PlanFeatureSummary[];
+};
+
+export type PlanFeatureSummary = {
+    feature: string;
+    label: string;
+    type: 'boolean' | 'metered' | 'resource';
+    limit: number | null;
+    included: boolean;
+    unlimited: boolean;
+    unit: string;
+    limit_label?: string;
+};
+
+export type PlanDetails = PlanSummary & {
+    interval_count: number;
+};
+
+export type LicenseSummary = {
+    id: number;
+    label?: string | null;
+    status: string;
+    status_label: string;
+    is_active: boolean;
+    is_usable: boolean;
+    masked_key: string;
+    activated_at?: string | null;
+    expires_at?: string | null;
+    suspended_at?: string | null;
+    revoked_at?: string | null;
+    created_at: string;
+};
+
+export type LicenseFormErrors = {
+    label?: string;
+};
+
+export type ConnectedAccountStatus = 'pending' | 'active' | 'revoked';
+
+export type BillingOrganizationPermissions = {
+    manage: boolean;
+    manage_licenses: boolean;
+    view_history: boolean;
+};
+
+export type ConnectedAccountSummary = {
+    id: number;
+    organization_id: number;
+    provider: string;
+    provider_label: string;
+    provider_account_id: string;
+    account_name: string;
+    account_username: string | null;
+    account_type: string | null;
+    status: ConnectedAccountStatus;
+    status_label: string;
+    token_expires_at: string | null;
+    last_synced_at: string | null;
+    metadata: Record<string, unknown> | null;
+    is_active: boolean;
+    is_usable: boolean;
+    created_at: string;
+    updated_at: string;
+};
+
+export type ConversationStatusValue = 'open' | 'pending' | 'closed' | 'spam';
+
+export type ConversationPriorityValue = 'normal' | 'high' | 'urgent';
+
+export type InboxProvider = 'facebook' | 'instagram' | 'whatsapp' | 'telegram' | 'email';
+
+export type InboxPermissions = {
+    manage: boolean;
+};
+
+export type InboxContactSummary = {
+    id: number;
+    organization_id: number;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    avatar: string | null;
+    notes: string | null;
+    metadata: Record<string, unknown> | null;
+    created_at: string | null;
+    updated_at: string | null;
+};
+
+export type InboxConnectedAccountSummary = {
+    id: number;
+    organization_id: number;
+    provider: string;
+    provider_label: string;
+    provider_account_id: string;
+    account_name: string;
+    account_username: string | null;
+    account_type: string | null;
+    status: ConnectedAccountStatus;
+    status_label: string;
+    token_expires_at: string | null;
+    last_synced_at: string | null;
+    metadata: Record<string, unknown> | null;
+    is_active: boolean;
+    is_usable: boolean;
+    created_at: string;
+    updated_at: string;
+};
+
+export type InboxConversationSummary = {
+    id: number;
+    organization_id: number;
+    connected_account_id: number;
+    contact_id: number | null;
+    provider: string;
+    provider_conversation_id: string | null;
+    subject: string | null;
+    status: ConversationStatusValue;
+    status_label: string;
+    priority: ConversationPriorityValue;
+    priority_label: string;
+    assigned_to_id: number | null;
+    last_message_at: string | null;
+    last_message_preview: string | null;
+    unread_count: number;
+    metadata: Record<string, unknown> | null;
+    created_at: string | null;
+    updated_at: string | null;
+    contact: InboxContactSummary | null;
+    connected_account: InboxConnectedAccountSummary | null;
+};
+
+export type InboxMessage = {
+    id: number;
+    organization_id: number;
+    conversation_id: number;
+    provider_message_id: string | null;
+    direction: 'inbound' | 'outbound';
+    direction_label: string;
+    message_type: string;
+    message_type_label: string;
+    body: string | null;
+    sender_type: string | null;
+    sender_id: number | null;
+    sent_at: string | null;
+    delivered_at: string | null;
+    read_at: string | null;
+    failed_at: string | null;
+    failure_reason: string | null;
+    metadata: Record<string, unknown> | null;
+    created_at: string | null;
+    updated_at: string | null;
+};

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\Organization;
+use App\Models\User;
+use App\Policies\InboxPolicy;
 use App\Policies\OrganizationPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
@@ -26,5 +28,8 @@ class AppServiceProvider extends ServiceProvider
         Vite::prefetch(concurrency: 3);
 
         Gate::policy(Organization::class, OrganizationPolicy::class);
+
+        Gate::define('inbox.view', fn (User $user, Organization $organization): bool => (new InboxPolicy)->view($user, $organization));
+        Gate::define('inbox.manage', fn (User $user, Organization $organization): bool => (new InboxPolicy)->manage($user, $organization));
     }
 }
