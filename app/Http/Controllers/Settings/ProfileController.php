@@ -9,6 +9,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -50,9 +52,20 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        // Ownership cannot be orphaned. The owner must transfer ownership or
+        // delete the organization before the account can be removed.
+        if ($user->ownedOrganizations()->withTrashed()->exists()) {
+            throw ValidationException::withMessages([
+                'password' => __('Transfer ownership or delete every organization you own before deleting your account.'),
+            ]);
+        }
+
         Auth::logout();
 
-        $user->delete();
+        DB::transaction(function () use ($user): void {
+            $user->tokens()->delete();
+            $user->delete();
+        });
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

@@ -1,5 +1,9 @@
+import type { createHeadManager, Page, Router } from '@inertiajs/core';
 import type { Directive } from 'vue';
-import type { Auth } from '@/types/auth';
+import type {
+    Auth,
+    OrganizationSummary,
+} from '@/types';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -20,6 +24,10 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            currentOrganization: OrganizationSummary | null;
+            organizations: OrganizationSummary[];
+            status: string | null;
+            invitationUrl: string | null;
             [key: string]: unknown;
         };
     }
