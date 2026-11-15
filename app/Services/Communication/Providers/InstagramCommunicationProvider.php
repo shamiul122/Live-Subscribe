@@ -255,13 +255,23 @@ final class InstagramCommunicationProvider extends AbstractCommunicationProvider
      */
     public function providerEventId(array $payload): ?string
     {
-        $message = $payload['entry'][0]['messaging'][0]['message']['mid'] ?? null;
+        $message = $payload['entry'][0]['messaging'][0]['message']['mid']
+            ?? $payload['entry'][0]['changes'][0]['value']['message']['mid']
+            ?? null;
 
         if (is_string($message) && $message !== '') {
             return $message;
         }
 
-        return parent::providerEventId($payload);
+        $read = $payload['entry'][0]['messaging'][0]['read']['mid'] ?? null;
+
+        if (is_string($read) && $read !== '') {
+            return $read.':read';
+        }
+
+        // The entry id is the constant Instagram account id and cannot
+        // identify an event, so unknown events rely on the payload hash only.
+        return null;
     }
 
     /**

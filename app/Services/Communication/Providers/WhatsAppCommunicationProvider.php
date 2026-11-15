@@ -319,6 +319,44 @@ final class WhatsAppCommunicationProvider extends AbstractCommunicationProvider
     }
 
     /**
+     * The entry id in a WhatsApp payload is the (constant) business account id,
+     * so it cannot identify an event. Use the message or status identifier.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    public function providerEventId(array $payload): ?string
+    {
+        foreach ((array) ($payload['entry'] ?? []) as $entry) {
+            foreach ((array) ($entry['changes'] ?? []) as $change) {
+                $value = is_array($change['value'] ?? null) ? $change['value'] : [];
+
+                foreach ((array) ($value['messages'] ?? []) as $message) {
+                    $id = is_array($message) ? ($message['id'] ?? null) : null;
+
+                    if (is_string($id) && $id !== '') {
+                        return $id;
+                    }
+                }
+
+                foreach ((array) ($value['statuses'] ?? []) as $status) {
+                    if (! is_array($status)) {
+                        continue;
+                    }
+
+                    $id = $status['id'] ?? null;
+                    $state = $status['status'] ?? 'status';
+
+                    if (is_string($id) && $id !== '') {
+                        return $id.':'.(is_scalar($state) ? (string) $state : 'status');
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @param  array<string, mixed>  $payload
      */
     public function eventType(array $payload): string

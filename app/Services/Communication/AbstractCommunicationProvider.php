@@ -236,6 +236,17 @@ abstract class AbstractCommunicationProvider implements CommunicationProviderInt
     {
         $status = $response->status();
         $message = $this->providerErrorMessage($data);
+        $providerCode = $this->providerErrorCode($data);
+
+        // Meta reports expired or invalid access tokens as HTTP 400 with an
+        // OAuth error code, so the status alone is not enough to detect it.
+        if (in_array($providerCode, ['102', '190', '463', '467'], true)
+            || strcasecmp((string) ($data['error']['type'] ?? ''), 'OAuthException') === 0) {
+            return ProviderSendResult::failure(
+                CommunicationErrorCode::InvalidAccountCredentials,
+                $message ?? 'The provider rejected the account credentials.',
+            );
+        }
 
         return match (true) {
             $status === 429 => ProviderSendResult::failure(
@@ -270,6 +281,16 @@ abstract class AbstractCommunicationProvider implements CommunicationProviderInt
             'The provider could not be reached. Check the network and retry manually.',
             retryable: false,
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function providerErrorCode(array $data): ?string
+    {
+        $code = $data['error']['code'] ?? null;
+
+        return is_scalar($code) && (string) $code !== '' ? (string) $code : null;
     }
 
     /**

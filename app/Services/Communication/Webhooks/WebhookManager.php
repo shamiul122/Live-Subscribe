@@ -115,10 +115,17 @@ final class WebhookManager
                 'payload' => is_array($sanitized) ? $sanitized : [],
             ]));
         } catch (QueryException) {
-            // A concurrent delivery stored the same payload first.
+            // A concurrent delivery stored the same payload or provider event
+            // first. Both are safe to acknowledge as duplicates.
             $duplicate = WebhookEvent::query()
                 ->where('provider', $providerKey)
-                ->where('payload_hash', $payloadHash)
+                ->where(function ($query) use ($payloadHash, $providerEventId): void {
+                    $query->where('payload_hash', $payloadHash);
+
+                    if ($providerEventId !== null && $providerEventId !== '') {
+                        $query->orWhere('provider_event_id', Str::limit($providerEventId, 160, ''));
+                    }
+                })
                 ->exists();
 
             if ($duplicate) {
