@@ -73,4 +73,14 @@ class Contact extends Model
     {
         return $this->hasMany(Conversation::class);
     }
+
+    /**
+     * Campaign recipients that reference this contact.
+     *
+     * @return HasMany<CampaignRecipient, $this>
+     */
+    public function campaignRecipients(): HasMany
+    {
+        return $this->hasMany(CampaignRecipient::class);
+    }
 }
