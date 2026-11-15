@@ -64,7 +64,7 @@ class WebhookTest extends TestCase
         ], json_encode([
             'object' => 'page',
             'entry' => [['id' => $account->provider_account_id, 'messaging' => []]],
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         $response->assertForbidden();
         $this->assertSame(0, WebhookEvent::query()->count());
@@ -79,7 +79,7 @@ class WebhookTest extends TestCase
         $raw = json_encode([
             'object' => 'page',
             'entry' => [['id' => $account->provider_account_id, 'messaging' => []]],
-        ]);
+        ], JSON_THROW_ON_ERROR);
 
         $response = $this->call('POST', '/webhooks/facebook', [], [], [], [
             'CONTENT_TYPE' => 'application/json',
@@ -256,6 +256,7 @@ class WebhookTest extends TestCase
 
     /**
      * @param  array<string, mixed>  $payload
+     * @return TestResponse<\Symfony\Component\HttpFoundation\Response>
      */
     private function postSignedMeta(string $provider, array $payload, string $secret): TestResponse
     {
@@ -271,6 +272,7 @@ class WebhookTest extends TestCase
 
     /**
      * @param  array<string, mixed>  $payload
+     * @return TestResponse<\Symfony\Component\HttpFoundation\Response>
      */
     private function postTelegram(array $payload, ?int $accountId, string $secret): TestResponse
     {

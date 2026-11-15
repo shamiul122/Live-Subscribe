@@ -140,6 +140,7 @@ class DeliveryStatusTest extends TestCase
 
     /**
      * @param  array<string, mixed>  $extra
+     * @return TestResponse<\Symfony\Component\HttpFoundation\Response>
      */
     private function postStatus(ConnectedAccount $account, string $messageId, string $status, array $extra = []): TestResponse
     {

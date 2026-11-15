@@ -102,6 +102,7 @@ class InboundMessageTest extends TestCase
 
     /**
      * @param  array<string, mixed>  $value
+     * @return TestResponse<\Symfony\Component\HttpFoundation\Response>
      */
     private function postSignedWhatsApp(string $phoneNumberId, array $value): TestResponse
     {
@@ -146,6 +147,10 @@ class InboundMessageTest extends TestCase
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
     private function postTelegram(array $payload, int $accountId): TestResponse
     {
         return $this->postJson('/webhooks/telegram?account='.$accountId, $payload, [
