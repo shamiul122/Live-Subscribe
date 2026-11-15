@@ -49,11 +49,7 @@ function sendInvitation(): void {
 }
 
 function changeRole(member: OrganizationMember, role: string): void {
-    if (
-        !window.confirm(
-            `Change ${member.user.name}'s role to ${role}?`,
-        )
-    ) {
+    if (!window.confirm(`Change ${member.user.name}'s role to ${role}?`)) {
         return;
     }
 
@@ -157,9 +153,10 @@ function formatDate(value: string | null): string {
                         {{ isOwner ? 'Owner' : props.current_user_role }}
                     </span>
                 </div>
-                <p class="mt-1 text-sm text-muted-foreground">
-                    Owned by {{ props.organization.owner.name }}
-                    ({{ props.organization.owner.email }})
+                <p class="text-muted-foreground mt-1 text-sm">
+                    Owned by {{ props.organization.owner.name }} ({{
+                        props.organization.owner.email
+                    }})
                 </p>
             </div>
 
@@ -169,7 +166,9 @@ function formatDate(value: string | null): string {
                     variant="outline"
                     as-child
                 >
-                    <Link :href="`/organizations/${props.organization.slug}/edit`">
+                    <Link
+                        :href="`/organizations/${props.organization.slug}/edit`"
+                    >
                         Settings
                     </Link>
                 </Button>
@@ -203,11 +202,11 @@ function formatDate(value: string | null): string {
         </div>
 
         <div class="grid gap-6 lg:grid-cols-3">
-            <section class="space-y-4 lg:col-span-2">
+            <section id="members" class="space-y-4 lg:col-span-2">
                 <div class="rounded-lg border">
                     <div class="border-b p-4">
                         <h2 class="font-semibold">Members</h2>
-                        <p class="text-sm text-muted-foreground">
+                        <p class="text-muted-foreground text-sm">
                             Active and inactive memberships of this
                             organization.
                         </p>
@@ -235,10 +234,10 @@ function formatDate(value: string | null): string {
                                         Inactive
                                     </span>
                                 </p>
-                                <p class="text-sm text-muted-foreground">
+                                <p class="text-muted-foreground text-sm">
                                     {{ member.user.email }}
                                 </p>
-                                <p class="text-xs text-muted-foreground">
+                                <p class="text-muted-foreground text-xs">
                                     Joined {{ formatDate(member.joined_at) }}
                                 </p>
                             </div>
@@ -250,7 +249,7 @@ function formatDate(value: string | null): string {
                                         !member.is_owner &&
                                         member.status === 'active'
                                     "
-                                    class="h-9 rounded-md border bg-background px-2 text-sm"
+                                    class="bg-background h-9 rounded-md border px-2 text-sm"
                                     :value="member.role"
                                     @change="
                                         changeRole(
@@ -292,7 +291,7 @@ function formatDate(value: string | null): string {
                 >
                     <div>
                         <h2 class="font-semibold">Invite a member</h2>
-                        <p class="text-sm text-muted-foreground">
+                        <p class="text-muted-foreground text-sm">
                             The invitation expires after seven days.
                         </p>
                     </div>
@@ -317,7 +316,7 @@ function formatDate(value: string | null): string {
                             <select
                                 id="invite-role"
                                 v-model="inviteForm.role"
-                                class="h-9 rounded-md border bg-background px-2 text-sm"
+                                class="bg-background h-9 rounded-md border px-2 text-sm"
                             >
                                 <option value="member">Member</option>
                                 <option v-if="isOwner" value="admin">
@@ -333,20 +332,17 @@ function formatDate(value: string | null): string {
                     </form>
                 </div>
 
-                <div
-                    v-if="props.permissions.revoke"
-                    class="rounded-lg border"
-                >
+                <div v-if="props.permissions.revoke" class="rounded-lg border">
                     <div class="border-b p-4">
                         <h2 class="font-semibold">Pending invitations</h2>
-                        <p class="text-sm text-muted-foreground">
+                        <p class="text-muted-foreground text-sm">
                             Invitations that have not been accepted yet.
                         </p>
                     </div>
 
                     <p
                         v-if="props.invitations.length === 0"
-                        class="p-4 text-sm text-muted-foreground"
+                        class="text-muted-foreground p-4 text-sm"
                     >
                         No pending invitations.
                     </p>
@@ -361,7 +357,7 @@ function formatDate(value: string | null): string {
                                 <p class="font-medium">
                                     {{ invitation.email }}
                                 </p>
-                                <p class="text-sm text-muted-foreground">
+                                <p class="text-muted-foreground text-sm">
                                     {{ invitation.role_label }} · invited by
                                     {{ invitation.invited_by ?? 'unknown' }} ·
                                     expires
@@ -394,15 +390,12 @@ function formatDate(value: string | null): string {
                 >
                     <div>
                         <h2 class="font-semibold">Transfer ownership</h2>
-                        <p class="text-sm text-muted-foreground">
+                        <p class="text-muted-foreground text-sm">
                             Transfer ownership to an existing active member.
                         </p>
                     </div>
 
-                    <form
-                        class="space-y-3"
-                        @submit.prevent="transferOwnership"
-                    >
+                    <form class="space-y-3" @submit.prevent="transferOwnership">
                         <div class="grid gap-2">
                             <Label for="transfer-email">Member email</Label>
                             <Input
@@ -426,7 +419,7 @@ function formatDate(value: string | null): string {
                 <div class="space-y-4 rounded-lg border border-red-200 p-4">
                     <div>
                         <h2 class="font-semibold">Danger zone</h2>
-                        <p class="text-sm text-muted-foreground">
+                        <p class="text-muted-foreground text-sm">
                             These actions affect your access to the
                             organization.
                         </p>

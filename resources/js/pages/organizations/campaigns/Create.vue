@@ -6,6 +6,7 @@ import type {
     CampaignContactSummary,
     CampaignOption,
     CampaignOrganization,
+    ReusableMessageTemplate,
 } from '@/types';
 
 const props = defineProps<{
@@ -15,6 +16,7 @@ const props = defineProps<{
     audience_types: CampaignOption[];
     connected_accounts: CampaignConnectedAccountOption[];
     contacts: CampaignContactSummary[];
+    templates: ReusableMessageTemplate[];
 }>();
 </script>
 
@@ -43,6 +45,7 @@ const props = defineProps<{
             :audience-types="props.audience_types"
             :connected-accounts="props.connected_accounts"
             :contacts="props.contacts"
+            :templates="props.templates"
         />
     </div>
 </template>

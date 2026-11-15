@@ -13,6 +13,7 @@ use App\Models\Campaign;
 use App\Models\Organization;
 use App\Services\Campaigns\CampaignAudienceService;
 use App\Services\Campaigns\CampaignService;
+use App\Services\Templates\MessageTemplateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +27,7 @@ class CampaignController extends Controller
     public function __construct(
         private readonly CampaignService $campaigns,
         private readonly CampaignAudienceService $audience,
+        private readonly MessageTemplateService $templates,
     ) {}
 
     public function index(Request $request, Organization $organization): Response
@@ -153,6 +155,7 @@ class CampaignController extends Controller
             'audience_types' => $this->audienceTypeOptions(),
             'connected_accounts' => $this->accountOptions($organization),
             'contacts' => $this->audience->availableContacts($organization),
+            'templates' => $this->templates->reusable($organization),
             'permissions' => [
                 'manage' => Gate::allows('campaign.manage', $organization),
             ],

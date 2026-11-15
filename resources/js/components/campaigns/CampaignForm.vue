@@ -13,6 +13,7 @@ import type {
     CampaignOption,
     CampaignOrganization,
     CampaignRecord,
+    ReusableMessageTemplate,
 } from '@/types';
 
 const props = defineProps<{
@@ -22,6 +23,7 @@ const props = defineProps<{
     audienceTypes: CampaignOption[];
     connectedAccounts: CampaignConnectedAccountOption[];
     contacts: CampaignContactSummary[];
+    templates: ReusableMessageTemplate[];
     campaign?: CampaignRecord | null;
 }>();
 
@@ -59,6 +61,7 @@ const form = useForm<CampaignFormData>({
 });
 
 const contactSearch = ref('');
+const selectedTemplateId = ref<number | null>(null);
 const previewCount = ref<number | null>(null);
 const previewLoading = ref(false);
 const previewError = ref<string | null>(null);
@@ -167,6 +170,26 @@ watch(
 onMounted(() => {
     void refreshPreview();
 });
+
+function applyTemplate(): void {
+    if (selectedTemplateId.value === null) {
+        return;
+    }
+
+    const template = props.templates.find(
+        (item) => item.id === selectedTemplateId.value,
+    );
+
+    if (!template) {
+        return;
+    }
+
+    form.message_content = template.content;
+
+    if (template.channel) {
+        form.channel = template.channel;
+    }
+}
 
 function cancel(): void {
     if (props.campaign) {
@@ -277,6 +300,47 @@ function submit(): void {
 
             <div class="grid gap-2 md:col-span-2">
                 <Label for="campaign-message">Message content</Label>
+
+                <div
+                    v-if="props.templates.length > 0"
+                    class="flex flex-wrap items-end gap-2 rounded-lg border p-3"
+                >
+                    <div class="grid flex-1 gap-1">
+                        <Label for="campaign-template" class="text-xs"
+                            >Start from a message template</Label
+                        >
+                        <select
+                            id="campaign-template"
+                            v-model="selectedTemplateId"
+                            class="border-input bg-background flex h-10 w-full rounded-md border px-3 py-2 text-sm"
+                        >
+                            <option :value="null">Select a template</option>
+                            <option
+                                v-for="template in props.templates"
+                                :key="template.id"
+                                :value="template.id"
+                            >
+                                {{ template.name }} ({{
+                                    template.category_label
+                                }})
+                            </option>
+                        </select>
+                    </div>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        :disabled="selectedTemplateId === null"
+                        @click="applyTemplate"
+                    >
+                        Use template
+                    </Button>
+                    <p class="text-muted-foreground w-full text-xs">
+                        The template body is copied into the message content.
+                        Variables are kept as-is and are not sent automatically.
+                    </p>
+                </div>
+
                 <textarea
                     id="campaign-message"
                     v-model="form.message_content"

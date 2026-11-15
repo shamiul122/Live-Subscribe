@@ -1,6 +1,21 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, Building2, FolderGit2, LayoutGrid } from '@lucide/vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import {
+    BarChart3,
+    BookOpen,
+    Building2,
+    CreditCard,
+    FileText,
+    FolderGit2,
+    Inbox,
+    KeyRound,
+    LayoutGrid,
+    Megaphone,
+    Receipt,
+    Settings,
+    Users,
+} from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -17,6 +32,10 @@ import {
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
+const page = usePage();
+
+const currentOrganization = computed(() => page.props.currentOrganization);
+
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
@@ -29,6 +48,85 @@ const mainNavItems: NavItem[] = [
         icon: Building2,
     },
 ];
+
+type NavGroup = {
+    label: string;
+    items: NavItem[];
+};
+
+const organizationNavGroups = computed<NavGroup[]>(() => {
+    const organization = currentOrganization.value;
+
+    if (!organization) {
+        return [];
+    }
+
+    const base = `/organizations/${organization.slug}`;
+
+    return [
+        {
+            label: 'Workspace',
+            items: [
+                { title: 'Overview', href: dashboard(), icon: LayoutGrid },
+                { title: 'Inbox', href: `${base}/inbox`, icon: Inbox },
+                {
+                    title: 'Contacts',
+                    href: `${base}/inbox/contacts`,
+                    icon: Users,
+                },
+                {
+                    title: 'Connected Accounts',
+                    href: `${base}/connected-accounts`,
+                    icon: Building2,
+                },
+            ],
+        },
+        {
+            label: 'Marketing',
+            items: [
+                {
+                    title: 'Campaigns',
+                    href: `${base}/campaigns`,
+                    icon: Megaphone,
+                },
+            ],
+        },
+        {
+            label: 'Communication',
+            items: [
+                {
+                    title: 'Message Templates',
+                    href: `${base}/message-templates`,
+                    icon: FileText,
+                },
+            ],
+        },
+        {
+            label: 'Organization',
+            items: [
+                { title: 'Members', href: `${base}#members`, icon: Users },
+                { title: 'Settings', href: `${base}/edit`, icon: Settings },
+            ],
+        },
+        {
+            label: 'Billing',
+            items: [
+                { title: 'Plans', href: '/plans', icon: CreditCard },
+                {
+                    title: 'Subscription',
+                    href: `${base}/subscription`,
+                    icon: Receipt,
+                },
+                {
+                    title: 'Licenses',
+                    href: `${base}/licenses`,
+                    icon: KeyRound,
+                },
+                { title: 'Usage', href: `${base}/usage`, icon: BarChart3 },
+            ],
+        },
+    ];
+});
 
 const footerNavItems: NavItem[] = [
     {
@@ -59,7 +157,14 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :items="mainNavItems" label="Platform" />
+
+            <NavMain
+                v-for="group in organizationNavGroups"
+                :key="group.label"
+                :items="group.items"
+                :label="group.label"
+            />
         </SidebarContent>
 
         <SidebarFooter>

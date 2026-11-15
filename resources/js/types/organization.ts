@@ -64,7 +64,12 @@ export type PlanSummary = {
     name: string;
     description: string | null;
     price: { minor: number; currency: string; formatted: string };
-    interval: { value: string; label: string; count: number; label_full: string };
+    interval: {
+        value: string;
+        label: string;
+        count: number;
+        label_full: string;
+    };
     interval_label: string;
     has_trial: boolean;
     trial_days: number;
@@ -116,6 +121,91 @@ export type BillingOrganizationPermissions = {
     view_history: boolean;
 };
 
+export type Money = {
+    minor: number;
+    currency: string;
+    formatted: string;
+};
+
+export type SubscriptionSummary = {
+    id: number;
+    status: string;
+    status_label: string;
+    is_trialing: boolean;
+    is_active: boolean;
+    is_past_due: boolean;
+    is_cancelled: boolean;
+    is_suspended: boolean;
+    is_expired: boolean;
+    is_entitled: boolean;
+    plan: { id: number; slug: string; name: string } | null;
+    price: Money;
+    interval: { value: string; label: string; count: number };
+    trial_ends_at: string | null;
+    current_period_start: string;
+    current_period_end: string;
+    grace_ends_at: string | null;
+    cancel_at_period_end: boolean;
+    cancelled_at: string | null;
+    suspended_at: string | null;
+    ended_at: string | null;
+    entitled_until: string | null;
+    pending_plan: { id: number; slug: string; name: string } | null;
+    days_remaining: number | null;
+};
+
+export type FeatureLine = {
+    feature: string;
+    label: string;
+    type: string;
+    limit: number | null;
+    limit_label: string;
+    used: number;
+    used_label: string;
+    remaining: number | null;
+    remaining_label: string;
+    unlimited: boolean;
+    included: boolean;
+    exhausted: boolean;
+    unit: string;
+};
+
+export type OrderTransactionSummary = {
+    id: number;
+    status: string;
+    status_label: string;
+    provider: string | null;
+    provider_reference: string | null;
+    amount: Money;
+    failure_code: string | null;
+    failure_message: string | null;
+    processed_at: string | null;
+};
+
+export type OrderSummary = {
+    id: number;
+    type: string;
+    type_label: string;
+    status: string;
+    status_label: string;
+    is_payable: boolean;
+    amount: Money;
+    plan: { slug: string; name: string } | null;
+    paid_at: string | null;
+    created_at: string | null;
+    transactions: OrderTransactionSummary[];
+};
+
+export type SubscriptionEventSummary = {
+    id: number;
+    type: string;
+    type_label: string;
+    from_status: string | null;
+    to_status: string | null;
+    data: Record<string, unknown> | null;
+    created_at: string | null;
+};
+
 export type ConnectedAccountSummary = {
     id: number;
     organization_id: number;
@@ -140,7 +230,12 @@ export type ConversationStatusValue = 'open' | 'pending' | 'closed' | 'spam';
 
 export type ConversationPriorityValue = 'normal' | 'high' | 'urgent';
 
-export type InboxProvider = 'facebook' | 'instagram' | 'whatsapp' | 'telegram' | 'email';
+export type InboxProvider =
+    | 'facebook'
+    | 'instagram'
+    | 'whatsapp'
+    | 'telegram'
+    | 'email';
 
 export type InboxPermissions = {
     manage: boolean;
@@ -202,7 +297,16 @@ export type InboxConversationSummary = {
     connected_account: InboxConnectedAccountSummary | null;
 };
 
-export type InboxDeliveryStatus = 'queued' | 'pending' | 'processing' | 'sending' | 'accepted' | 'sent' | 'delivered' | 'read' | 'failed';
+export type InboxDeliveryStatus =
+    | 'queued'
+    | 'pending'
+    | 'processing'
+    | 'sending'
+    | 'accepted'
+    | 'sent'
+    | 'delivered'
+    | 'read'
+    | 'failed';
 
 export type InboxAttachmentSummary = {
     id: number;
@@ -240,7 +344,11 @@ export type InboxMessage = {
     updated_at: string | null;
 };
 
-export type InboxCommunicationCapability = 'outbound_text' | 'attachments' | 'delivery_status' | 'inbound_webhooks';
+export type InboxCommunicationCapability =
+    | 'outbound_text'
+    | 'attachments'
+    | 'delivery_status'
+    | 'inbound_webhooks';
 
 export type InboxCommunicationStatus = {
     provider: string | null;
