@@ -28,6 +28,8 @@ class MessageFactory extends Factory
             'provider_message_id' => (string) Str::uuid(),
             'direction' => MessageDirection::Inbound,
             'message_type' => MessageType::Text,
+            'delivery_status' => null,
+            'idempotency_key' => null,
             'body' => fake()->sentence(6),
             'sender_type' => 'contact',
             'sender_id' => null,
@@ -52,5 +54,24 @@ class MessageFactory extends Factory
     public function providerMessageId(string $id): static
     {
         return $this->state(fn (): array => ['provider_message_id' => $id]);
+    }
+
+    public function failed(): static
+    {
+        return $this->outbound()->state(fn (): array => [
+            'delivery_status' => \App\Enums\MessageDeliveryStatus::Failed,
+            'failed_at' => now(),
+            'failure_reason' => 'The provider rejected the message.',
+        ]);
+    }
+
+    public function queuedOutbound(string $idempotencyKey): static
+    {
+        return $this->outbound()->state(fn (): array => [
+            'delivery_status' => \App\Enums\MessageDeliveryStatus::Queued,
+            'idempotency_key' => $idempotencyKey,
+            'sent_at' => null,
+            'provider_message_id' => null,
+        ]);
     }
 }

@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers\Organizations\Inbox;
 
+use App\Enums\CommunicationCapability;
 use App\Enums\ConversationPriority;
 use App\Enums\ConversationStatus;
 use App\Enums\SocialProvider;
 use App\Http\Controllers\Controller;
+use App\Models\ConnectedAccount;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\Communication\CommunicationProviderRegistry;
 use App\Services\Inbox\ContactService;
 use App\Services\Inbox\ConversationService;
 use App\Services\Inbox\MessageService;
@@ -24,6 +27,7 @@ class InboxController extends Controller
         private readonly ConversationService $conversations,
         private readonly ContactService $contacts,
         private readonly MessageService $messages,
+        private readonly CommunicationProviderRegistry $communication,
     ) {
     }
 
@@ -88,7 +92,44 @@ class InboxController extends Controller
             'permissions' => [
                 'manage' => Gate::allows('inbox.manage', $organization),
             ],
+            'communication' => $this->communicationProps($conversation->connectedAccount),
         ]);
+    }
+
+    /**
+     * Capability and readiness details for the composer.
+     *
+     * A disabled capability is surfaced together with the adapter's honest
+     * reason instead of offering an action that would always fail.
+     *
+     * @return array<string, mixed>
+     */
+    private function communicationProps(?ConnectedAccount $account): array
+    {
+        $provider = $account !== null ? $this->communication->providerForAccount($account) : null;
+        $status = $account !== null && $provider !== null ? $provider->accountStatus($account) : null;
+
+        $capabilities = [];
+        $reasons = [];
+
+        foreach (CommunicationCapability::cases() as $capability) {
+            $capabilities[$capability->value] = $provider?->supports($capability) ?? false;
+            $reasons[$capability->value] = $provider?->capabilityReason($capability);
+        }
+
+        return [
+            'provider' => $account?->provider->value,
+            'configured' => $status->configured ?? false,
+            'usable' => $status->usable ?? false,
+            'error_code' => $status->errorCode?->value,
+            'error_message' => $status->errorMessage,
+            'capabilities' => $capabilities,
+            'capability_reasons' => $reasons,
+            'attachments' => [
+                'max_size_kb' => (int) config('communication.attachments.max_size_kb', 10240),
+                'max_per_message' => (int) config('communication.attachments.max_per_message', 5),
+            ],
+        ];
     }
 
     private function statusFromRequest(Request $request): ?ConversationStatus

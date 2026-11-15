@@ -5,7 +5,9 @@ use App\Http\Controllers\Organizations\ConnectedAccountController;
 use App\Http\Controllers\Organizations\FeatureController;
 use App\Http\Controllers\Organizations\Inbox\ContactController;
 use App\Http\Controllers\Organizations\Inbox\ConversationController;
+use App\Http\Controllers\Organizations\Inbox\InboxAttachmentController;
 use App\Http\Controllers\Organizations\Inbox\InboxController;
+use App\Http\Controllers\Organizations\Inbox\InboxMessageController;
 use App\Http\Controllers\Organizations\LicenseController;
 use App\Http\Controllers\Organizations\SubscriptionController;
 use App\Http\Controllers\Organizations\UsageController;
@@ -113,5 +115,17 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
         Route::put('organizations/{organization:slug}/inbox/contacts/{contact}', [ContactController::class, 'update'])
             ->name('organizations.inbox.contacts.update');
+
+        Route::post('organizations/{organization:slug}/inbox/messages', [InboxMessageController::class, 'store'])
+            ->name('organizations.inbox.messages.store');
+
+        Route::post('organizations/{organization:slug}/inbox/messages/{message}/retry', [InboxMessageController::class, 'retry'])
+            ->name('organizations.inbox.messages.retry');
+
+        Route::post('organizations/{organization:slug}/inbox/attachments', [InboxAttachmentController::class, 'store'])
+            ->name('organizations.inbox.attachments.store');
+
+        Route::get('organizations/{organization:slug}/inbox/attachments/{attachment}/download', [InboxAttachmentController::class, 'download'])
+            ->name('organizations.inbox.attachments.download');
     });
 });

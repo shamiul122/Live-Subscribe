@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureOrganizationEntitlement;
 use App\Http\Middleware\EnsureOrganizationMembership;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function (): void {
             Route::middleware('web')->group(base_path('routes/settings.php'));
             Route::middleware('web')->group(base_path('routes/organizations.php'));
+            Route::middleware('web')->group(base_path('routes/billing.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -30,8 +32,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // Provider callbacks are authenticated by their own signature/secret
+        // verification inside WebhookManager, not by a browser CSRF token.
+        $middleware->validateCsrfTokens(except: ['webhooks/*']);
+
         $middleware->alias([
             'organization.member' => EnsureOrganizationMembership::class,
+            'organization.entitlement' => EnsureOrganizationEntitlement::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -202,6 +202,17 @@ export type InboxConversationSummary = {
     connected_account: InboxConnectedAccountSummary | null;
 };
 
+export type InboxDeliveryStatus = 'queued' | 'pending' | 'processing' | 'sending' | 'accepted' | 'sent' | 'delivered' | 'read' | 'failed';
+
+export type InboxAttachmentSummary = {
+    id: number;
+    original_name: string;
+    mime_type: string;
+    size: number;
+    is_image: boolean;
+    attachment_type: string;
+};
+
 export type InboxMessage = {
     id: number;
     organization_id: number;
@@ -211,6 +222,8 @@ export type InboxMessage = {
     direction_label: string;
     message_type: string;
     message_type_label: string;
+    delivery_status: InboxDeliveryStatus | null;
+    delivery_status_label: string | null;
     body: string | null;
     sender_type: string | null;
     sender_id: number | null;
@@ -220,6 +233,25 @@ export type InboxMessage = {
     failed_at: string | null;
     failure_reason: string | null;
     metadata: Record<string, unknown> | null;
+    is_retryable: boolean;
+    last_error_code: string | null;
+    attachments: InboxAttachmentSummary[];
     created_at: string | null;
     updated_at: string | null;
+};
+
+export type InboxCommunicationCapability = 'outbound_text' | 'attachments' | 'delivery_status' | 'inbound_webhooks';
+
+export type InboxCommunicationStatus = {
+    provider: string | null;
+    configured: boolean;
+    usable: boolean;
+    error_code: string | null;
+    error_message: string | null;
+    capabilities: Record<InboxCommunicationCapability, boolean>;
+    capability_reasons: Record<InboxCommunicationCapability, string | null>;
+    attachments: {
+        max_size_kb: number;
+        max_per_message: number;
+    };
 };

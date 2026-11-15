@@ -9,6 +9,7 @@ use App\Models\ConnectedAccount;
 use App\Models\Conversation;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\Communication\CommunicationNotifier;
 use App\Services\Social\SocialAccountManager;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,7 @@ final class ConversationService
         private readonly ConversationEventService $events,
         private readonly MessageService $messages,
         private readonly SocialAccountManager $socialAccounts,
+        private readonly CommunicationNotifier $notifier,
     ) {
     }
 
@@ -66,7 +68,7 @@ final class ConversationService
     }
 
     public function create(
-        User $actor,
+        ?User $actor,
         Organization $organization,
         ConnectedAccount $connectedAccount,
         ?int $contactId,
@@ -111,15 +113,93 @@ final class ConversationService
         return $conversation;
     }
 
+    /**
+     * Find or create the conversation an inbound provider payload belongs to.
+     *
+     * Provider payloads never carry an organization id we could trust; the
+     * connected account has already been resolved from provider identities.
+     */
+    public function ensureForProvider(
+        Organization $organization,
+        ConnectedAccount $connectedAccount,
+        ?int $contactId,
+        ?string $providerConversationId,
+        ?string $subject = null,
+        ?string $preview = null,
+    ): Conversation {
+        if ($connectedAccount->organization_id !== $organization->id) {
+            throw new ModelNotFoundException("Connected account [{$connectedAccount->id}] was not found for this organization.");
+        }
+
+        $query = Conversation::query()
+            ->where('organization_id', $organization->id)
+            ->where('connected_account_id', $connectedAccount->id);
+
+        if ($providerConversationId !== null && $providerConversationId !== '') {
+            $existing = (clone $query)
+                ->where('provider_conversation_id', $providerConversationId)
+                ->first();
+
+            if ($existing !== null) {
+                return $this->refreshInboundConversation($existing, $contactId, $preview);
+            }
+        }
+
+        if ($contactId !== null && ($providerConversationId === null || $providerConversationId === '')) {
+            $existing = (clone $query)
+                ->where('contact_id', $contactId)
+                ->orderByDesc('last_message_at')
+                ->orderByDesc('id')
+                ->first();
+
+            if ($existing !== null) {
+                return $this->refreshInboundConversation($existing, $contactId, $preview);
+            }
+        }
+
+        return $this->create(
+            null,
+            $organization,
+            $connectedAccount,
+            $contactId,
+            $subject,
+            $providerConversationId !== '' ? $providerConversationId : null,
+        );
+    }
+
+    private function refreshInboundConversation(Conversation $conversation, ?int $contactId, ?string $preview): Conversation
+    {
+        if ($conversation->contact_id === null && $contactId !== null) {
+            $conversation->contact_id = $contactId;
+        }
+
+        if ($preview !== null && $preview !== '') {
+            $conversation->last_message_at = now();
+            $conversation->last_message_preview = $preview;
+        }
+
+        if ($conversation->isDirty()) {
+            $conversation->save();
+        }
+
+        return $conversation;
+    }
+
     public function updateStatus(User $actor, Organization $organization, Conversation $conversation, ConversationStatus $status): Conversation
     {
+        $previous = $conversation->status;
+
         $conversation->status = $status;
         $conversation->save();
 
         $this->events->record($actor, $organization, $conversation, ConversationEventService::STATUS_CHANGED, [
             'status' => $status->value,
-            'from_status' => $conversation->getOriginal('status')?->value,
+            'from_status' => $previous->value,
         ]);
+
+        if ($previous !== $status) {
+            $this->notifier->notifyConversationStatusChanged($conversation, $actor);
+        }
 
         return $conversation;
     }
@@ -158,6 +238,8 @@ final class ConversationService
             $this->events->record($actor, $organization, $conversation, ConversationEventService::CONVERSATION_ASSIGNED, [
                 'assigned_to_id' => $assignedToId,
             ]);
+
+            $this->notifier->notifyConversationAssigned($conversation, $actor);
         }
 
         return $conversation;

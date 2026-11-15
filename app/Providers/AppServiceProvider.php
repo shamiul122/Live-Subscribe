@@ -17,7 +17,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(\App\Services\Communication\CommunicationProviderRegistry::class, function () {
+            $registry = new \App\Services\Communication\CommunicationProviderRegistry();
+            $registry->registerDefaults();
+            return $registry;
+        });
     }
 
     /**
